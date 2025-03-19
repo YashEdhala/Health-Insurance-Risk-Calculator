@@ -1,65 +1,105 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>About Me</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Insurance Risk Calculator</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            line-height: 1.6;
-        }
-        .container {
-            width: 80%;
-            margin: auto;
-            overflow: hidden;
-        }
-        .main-info {
-            background: #333;
-            color: #fff;
-            padding: 20px;
-        }
-        .main-info h1 {
-            margin: 0;
-        }
-        .hobbies, .lewis, .course, .job {
-            background: #e7e7e7;
-            padding: 15px;
-            margin-bottom: 10px;
-        }
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto; }
+        .error { color: red; display: none; }
+        input, button { margin: 5px; padding: 5px; }
+        #result { margin-top: 20px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header class="main-info">
-            <h1>[Your First and Last Name]</h1>
-            <h1>Preferred Name: [Your Preferred Name]</h1>
-        </header>
+    <!-- Authors: Joshua Vachachira, Ethan Cala, Yash Edala -->
+    <h1>Health Insurance Risk Calculator</h1>
+    <p>Enter the customer's health details below:</p>
+    
+    <form id="healthForm" onsubmit="calculateRisk(event)">
+        <label>Age: <input type="number" id="age" min="1" required></label>
+        <span class="error" id="ageError">Age must be positive.</span><br>
 
-        <section class="lewis">
-			<h2>Year at Lewis: [Your Years at Lewis]</h2>
-			<h2>Lewis major/minor/concentrations: [Your major/minor/concentrations]</h2>
-			<h2>Reasons for pursuing this degree: [Your reasons for pursuing the degree]</h2>
-        </section>
+        <label>Height (feet): <input type="number" id="feet" min="2" max="8" required></label>
+        <label>Inches: <input type="number" id="inches" min="0" max="11" required></label>
+        <span class="error" id="heightError">Height must be at least 2 feet.</span><br>
 
-		<section class="course">
-            <h2>Reasons for Taking This Course</h2>
-            <p>[Your reasons for taking this course]</p>
-        </section>
+        <label>Weight (lbs): <input type="number" id="weight" min="1" required></label>
+        <span class="error" id="weightError">Weight must be positive.</span><br>
 
-		<section class="job">
-            <p>Current/Recent Job</p>
-			<p>[Your job responsibilities]</p>
-        </section>		
+        <label>Systolic BP: <input type="number" id="systolic" min="1" required></label>
+        <label>Diastolic BP: <input type="number" id="diastolic" min="1" required></label>
+        <span class="error" id="bpError">Blood pressure must be positive.</span><br>
 
-        <section class="hobbies">
-            <h2>Hobbies and Special Interests</h2>
-            <p>[Your hobbies or special interests]</p>
-        </section>
+        <label>Family History:</label><br>
+        <input type="checkbox" id="diabetes" name="disease" value="diabetes"> Diabetes
+        <input type="checkbox" id="cancer" name="disease" value="cancer"> Cancer
+        <input type="checkbox" id="alzheimers" name="disease" value="alzheimers"> Alzheimer's<br>
 
-        <section class="fun-fact">
-            <h2>Fun Fact</h2>
-            <p>[A fun fact about yourself]</p>
-        </section>
-    </div>
+        <button type="submit">Calculate Risk</button>
+    </form>
+
+    <div id="result"></div>
+
+    <script>
+        // Authors: Joshua Vachachira, Ethan Cala, Yash Edala
+        async function calculateRisk(event) {
+            event.preventDefault();
+            clearErrors();
+
+            // Get form values
+            const age = parseInt(document.getElementById('age').value);
+            const feet = parseInt(document.getElementById('feet').value);
+            const inches = parseInt(document.getElementById('inches').value);
+            const weight = parseInt(document.getElementById('weight').value);
+            const systolic = parseInt(document.getElementById('systolic').value);
+            const diastolic = parseInt(document.getElementById('diastolic').value);
+            const diseases = Array.from(document.querySelectorAll('input[name="disease"]:checked'))
+                .map(input => input.value);
+
+            // Validate inputs
+            let valid = true;
+            if (age <= 0) { showError('ageError'); valid = false; }
+            if (feet < 2 || inches < 0 || inches > 11) { showError('heightError'); valid = false; }
+            if (weight <= 0) { showError('weightError'); valid = false; }
+            if (systolic <= 0 || diastolic <= 0) { showError('bpError'); valid = false; }
+            if (!valid) return;
+
+            // Prepare data for API
+            const data = { age, feet, inches, weight, systolic, diastolic, diseases };
+
+            try {
+                // Call server API (replace with your Azure Functions endpoint)
+                const response = await fetch('http://localhost:3000/api/calculate-risk', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+
+                // Display result
+                document.getElementById('result').innerHTML = `
+                    <h3>Result</h3>
+                    <p>Age Points: ${result.agePoints}</p>
+                    <p>BMI: ${result.bmi.toFixed(1)} (Points: ${result.bmiPoints})</p>
+                    <p>Blood Pressure: ${result.bpCategory} (Points: ${result.bpPoints})</p>
+                    <p>Family Disease Points: ${result.diseasePoints}</p>
+                    <p>Total Score: ${result.totalScore}</p>
+                    <p>Risk Category: ${result.riskCategory}</p>
+                `;
+            } catch (error) {
+                document.getElementById('result').innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+
+        function showError(id) {
+            document.getElementById(id).style.display = 'block';
+            document.getElementById(id.split('Error')[0]).focus();
+        }
+
+        function clearErrors() {
+            document.querySelectorAll('.error').forEach(e => e.style.display = 'none');
+        }
+    </script>
 </body>
 </html>
