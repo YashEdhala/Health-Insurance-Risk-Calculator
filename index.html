@@ -97,7 +97,7 @@
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
         }
 
-        #result {
+        #bpTable, #result {
             margin-top: 25px;
             padding: 20px;
             background: linear-gradient(45deg, #aqua, #42a5f5);
@@ -106,19 +106,28 @@
             animation: fadeInUp 0.8s ease-out;
         }
 
-        #result h3 {
+        h2, #result h3 {
             color: #fff;
             margin-top: 0;
             font-size: 1.8em;
             text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
         }
 
-        #result p {
-            margin: 8px 0;
-            text-align: left;
+        table {
+            width: 100%;
+            border-collapse: collapse;
             color: #fff;
-            font-size: 1.1em;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        th {
+            background: rgba(0, 0, 0, 0.2);
         }
 
         .field-group {
@@ -152,6 +161,43 @@
     <!-- Authors: Joshua Vachachira, Ethan Cala, Yash Edala -->
     <h1>Health Insurance Risk Calculator</h1>
     <p>Enter the customer's health details below to assess their insurance risk.</p>
+
+    <!-- Blood Pressure Categories Table by Yash -->
+    <div id="bpTable">
+        <h2>Blood Pressure Categories</h2>
+        <table>
+            <tr>
+                <th>Category</th>
+                <th>Systolic (mm Hg)</th>
+                <th>Diastolic (mm Hg)</th>
+            </tr>
+            <tr>
+                <td>Normal</td>
+                <td>Less than 120</td>
+                <td>Less than 80</td>
+            </tr>
+            <tr>
+                <td>Elevated</td>
+                <td>120–129</td>
+                <td>Less than 80</td>
+            </tr>
+            <tr>
+                <td>Stage 1 Hypertension</td>
+                <td>130–139</td>
+                <td>80–89</td>
+            </tr>
+            <tr>
+                <td>Stage 2 Hypertension</td>
+                <td>140 or higher</td>
+                <td>90 or higher</td>
+            </tr>
+            <tr>
+                <td>Crisis</td>
+                <td>Higher than 180</td>
+                <td>Higher than 120</td>
+            </tr>
+        </table>
+    </div>
     
     <form id="healthForm" onsubmit="calculateRisk(event)">
         <div class="field-group">
@@ -270,15 +316,44 @@
             else if (totalScore <= 75) riskCategory = 'High Risk';
             else riskCategory = 'Uninsurable';
 
-            // Display result
+            // Display result with summary table by Yash
             document.getElementById('result').innerHTML = `
                 <h3>Risk Assessment</h3>
-                <p>Age Points: ${agePoints}</p>
-                <p>BMI: ${bmi.toFixed(1)} (Points: ${bmiPoints})</p>
-                <p>Blood Pressure: ${bpCategory} (Points: ${bpPoints})</p>
-                <p>Family Disease Points: ${diseasePoints}</p>
-                <p>Total Score: ${totalScore}</p>
-                <p>Risk Category: ${riskCategory}</p>
+                <table>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Value</th>
+                        <th>Points</th>
+                    </tr>
+                    <tr>
+                        <td>Age</td>
+                        <td>${age}</td>
+                        <td>${agePoints}</td>
+                    </tr>
+                    <tr>
+                        <td>BMI</td>
+                        <td>${bmi.toFixed(1)}</td>
+                        <td>${bmiPoints}</td>
+                    </tr>
+                    <tr>
+                        <td>Blood Pressure</td>
+                        <td>${bpCategory} (${systolic}/${diastolic})</td>
+                        <td>${bpPoints}</td>
+                    </tr>
+                    <tr>
+                        <td>Family Diseases</td>
+                        <td>${diseases.length > 0 ? diseases.join(', ') : 'None'}</td>
+                        <td>${diseasePoints}</td>
+                    </tr>
+                    <tr>
+                        <th>Total Score</th>
+                        <td colspan="2">${totalScore}</td>
+                    </tr>
+                    <tr>
+                        <th>Risk Category</th>
+                        <td colspan="2">${riskCategory}</td>
+                    </tr>
+                </table>
             `;
         }
 
